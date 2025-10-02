@@ -47,16 +47,15 @@ pub async fn get_user(
     Ok(Json(user))
 }
 
-pub async fn update_user(
+pub async fn update_user_to_checked(
     State(pool): State<Pool<Postgres>>,
-    Path(id): Path<i32>,
+    Path((id,is_good)): Path<(i32,bool)>,
     Json(payload): Json<UpdateUserPayload>,
 ) -> Result<Json<entities::user_to_check::UserToCheck>, StatusCode> {
-    let user = user_to_check::update_user(&pool, id, &payload.username, payload.is_checked)
+    let user = user_to_check::update_user_checked(&pool, id,is_good)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
         .ok_or(StatusCode::NOT_FOUND)?;
-
     Ok(Json(user))
 }
 
