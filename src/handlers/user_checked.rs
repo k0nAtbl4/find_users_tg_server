@@ -1,4 +1,4 @@
-use axum::{extract::{State, Path}, http::StatusCode, routing::{get, post}, Json, Router};
+use axum::{extract::{State, Path}, http::StatusCode, Json};
 use sqlx::{Pool, Postgres};
 use serde::Deserialize;
 

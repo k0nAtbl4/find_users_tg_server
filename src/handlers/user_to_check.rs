@@ -1,7 +1,5 @@
-use axum::{extract::{State, Path}, http::StatusCode, routing::{get, post}, Json, Router};
-use dotenvy::dotenv;
+use axum::{extract::{State, Path}, http::StatusCode, Json};
 use sqlx::{Pool, Postgres};
-use std::net::SocketAddr;
 use serde::Deserialize;
 
 use crate::{entities};
@@ -10,8 +8,8 @@ use crate::db::user_to_check;
 
 #[derive(Deserialize)]
 pub struct UpdateUserPayload {
-    username: String,
-    is_checked: bool,
+    pub id: i32,
+    pub is_good: bool,
 }
 
 pub async fn create_user(
@@ -49,10 +47,9 @@ pub async fn get_user(
 
 pub async fn update_user_to_checked(
     State(pool): State<Pool<Postgres>>,
-    Path((id,is_good)): Path<(i32,bool)>,
     Json(payload): Json<UpdateUserPayload>,
 ) -> Result<Json<entities::user_to_check::UserToCheck>, StatusCode> {
-    let user = user_to_check::update_user_checked(&pool, id,is_good)
+    let user = user_to_check::update_user_checked(&pool, payload)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
         .ok_or(StatusCode::NOT_FOUND)?;

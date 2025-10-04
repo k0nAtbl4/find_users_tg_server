@@ -1,5 +1,5 @@
-use crate::entities::user_to_check::UserToCheck;
-use sqlx::{Pool, Postgres, postgres::PgPoolOptions};
+use crate::{entities::user_to_check::UserToCheck, handlers::user_to_check::UpdateUserPayload};
+use sqlx::{Pool, Postgres};
 
 pub async fn create_user(
     pool: &Pool<Postgres>,
@@ -45,19 +45,17 @@ pub async fn get_user_by_id(
 
 pub async fn update_user_checked(
     pool: &Pool<Postgres>,
-    id: i32,
-    is_good: bool,
+    payload: UpdateUserPayload,
 ) -> Result<Option<UserToCheck>, sqlx::Error> {
     let mut tx = pool.begin().await?;
-
     let user_to_check =
         sqlx::query_as::<_, UserToCheck>("DELETE FROM users_to_check WHERE id = $1 RETURNING *")
-            .bind(id)
+            .bind(payload.id)
             .fetch_optional(&mut *tx)
             .await?;
 
     if let Some(user) = user_to_check {
-        if is_good {
+        if payload.is_good {
             sqlx::query("INSERT INTO users_checked (username) VALUES ($1)")
                 .bind(&user.username)
                 .execute(&mut *tx)
